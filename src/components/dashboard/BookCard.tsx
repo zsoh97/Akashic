@@ -2,104 +2,113 @@
 
 import {
 	Box,
-	VStack,
 	Image,
-	Heading,
 	Text,
-	IconButton,
+	Heading,
+	Stack,
+	Badge,
 	useColorModeValue,
+	Flex,
+	Icon,
+	LinkBox,
+	LinkOverlay,
 } from "@chakra-ui/react";
-import { useRouter } from "next/navigation";
-import { FiCheckCircle, FiBookOpen } from "react-icons/fi";
-import { useState } from "react";
+import { FiStar } from "react-icons/fi";
+import NextLink from "next/link";
+import { motion } from "framer-motion";
+
+const MotionBox = motion(Box);
 
 interface BookCardProps {
 	id: string;
+	isbn?: string;
 	title: string;
-	author: string;
-	coverImage: string;
-	status?: "read" | "want-to-read";
+	authors: string[];
+	coverImage?: string;
+	rating?: number;
+	categories?: string[];
 }
 
-export function BookCard({
-	id,
-	title,
-	author,
-	coverImage,
-	status,
-}: BookCardProps) {
-	const router = useRouter();
-	const [readingStatus, setReadingStatus] = useState<
-		"read" | "want-to-read" | null
-	>(status || null);
-	const borderColor = useColorModeValue("gray.100", "gray.700");
-
-	const handleStatusClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		const newStatus = readingStatus === "read" ? "want-to-read" : "read";
-		setReadingStatus(newStatus);
-		// Here you would make an API call to update the reading status
-	};
-
+export function BookCard({ id, isbn, title, authors, coverImage, rating, categories }: BookCardProps) {
+	const bgColor = useColorModeValue("white", "gray.800");
+	const borderColor = useColorModeValue("gray.200", "gray.700");
+	const textColor = useColorModeValue("gray.600", "gray.400");
+	
+	// Default cover image if none provided
+	const defaultCover = "/empty-book-cover.svg";
+	
+	// Force the image source to be the SVG if coverImage is empty or invalid
+	const imageSrc = coverImage || defaultCover;
+	
 	return (
-		<Box
-			position="relative"
-			p={4}
-			bg="white"
-			borderRadius="lg"
-			borderWidth="1px"
-			borderColor={borderColor}
-			cursor="pointer"
-			onClick={() => router.push(`/books/${id}`)}
-			transition="all 0.2s"
-			_hover={{
-				transform: "translateY(-2px)",
-				shadow: "md",
-				borderColor: "sepia.500",
-			}}
+		<MotionBox
+			whileHover={{ y: -5 }}
+			transition={{ duration: 0.2 }}
 		>
-			<IconButton
-				position="absolute"
-				top={6}
-				right={6}
-				aria-label="Update reading status"
-				icon={readingStatus === "read" ? <FiCheckCircle /> : <FiBookOpen />}
-				variant="ghost"
-				colorScheme="sepia"
-				size="sm"
-				onClick={handleStatusClick}
-				zIndex={2}
-				color={readingStatus ? "sepia.500" : "gray.400"}
-				_hover={{
-					bg: "white",
-					color: "sepia.600",
-				}}
-			/>
-			<VStack spacing={3}>
-				<Box
-					position="relative"
+			<LinkBox
+				as="article"
+				maxW="200px"
+				borderWidth="1px"
+				borderRadius="lg"
+				overflow="hidden"
+				bg={bgColor}
+				borderColor={borderColor}
+				boxShadow="sm"
+				transition="all 0.2s"
+				_hover={{ boxShadow: "md", borderColor: "sepia.300" }}
+			>
+				<Image
+					src={imageSrc}
+					alt={`Cover for ${title}`}
+					height="240px"
 					width="100%"
-					height="200px"
-					overflow="hidden"
-					borderRadius="md"
-				>
-					<Image
-						src={coverImage}
-						alt={title}
-						objectFit="cover"
-						width="100%"
-						height="100%"
-					/>
+					objectFit="cover"
+					fallbackSrc={defaultCover}
+					onError={(e) => {
+						// If the image fails to load, explicitly set the src to our SVG
+						const target = e.target as HTMLImageElement;
+						target.src = defaultCover;
+					}}
+				/>
+				
+				<Box p={4}>
+					<Stack spacing={2}>
+						<Heading as="h3" size="sm" noOfLines={2} lineHeight="tight">
+							<LinkOverlay as={NextLink} href={`/dashboard/books/isbn/${isbn || id}`}>
+								{title}
+							</LinkOverlay>
+						</Heading>
+						
+						<Text fontSize="sm" color={textColor} noOfLines={1}>
+							{authors?.join(", ") || "Unknown Author"}
+						</Text>
+						
+						{rating && (
+							<Flex align="center">
+								<Icon as={FiStar} color="yellow.400" mr={1} />
+								<Text fontSize="sm" fontWeight="medium">
+									{rating.toFixed(1)}
+								</Text>
+							</Flex>
+						)}
+						
+						{categories && categories.length > 0 && (
+							<Flex wrap="wrap" gap={1} mt={1}>
+								{categories.slice(0, 2).map((category, index) => (
+									<Badge key={index} colorScheme="sepia" fontSize="xs">
+										{category}
+									</Badge>
+								))}
+								{categories.length > 2 && (
+									<Badge colorScheme="gray" fontSize="xs">
+										+{categories.length - 2}
+									</Badge>
+								)}
+							</Flex>
+						)}
+					</Stack>
 				</Box>
-				<VStack spacing={1} align="start" width="100%">
-					<Heading size="sm" noOfLines={2}>
-						{title}
-					</Heading>
-					<Text fontSize="sm" color="warmGray.600">
-						{author}
-					</Text>
-				</VStack>
-			</VStack>
-		</Box>
+			</LinkBox>
+		</MotionBox>
 	);
 }

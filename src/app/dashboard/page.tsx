@@ -2,148 +2,111 @@
 
 import {
 	Box,
-	Container,
-	Grid,
-	GridItem,
 	VStack,
 	Heading,
 	Text,
 	Icon,
 	Link,
 	useColorModeValue,
+	SimpleGrid,
+	Button,
+	Center,
 } from "@chakra-ui/react";
-import { FiHome, FiBook, FiUsers, FiStar } from "react-icons/fi";
-import { Navbar } from "@/components/Navbar";
+import { FiBook, FiCompass, FiUsers } from "react-icons/fi";
 import { PostCard } from "@/components/dashboard/PostCard";
 import { BookCard } from "@/components/dashboard/BookCard";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { useAuth } from '@/contexts/AuthContext';
 
-// Sidebar navigation items
-const sidebarItems = [
-	{ icon: FiHome, label: "Feed", href: "/dashboard" },
-	{ icon: FiBook, label: "My Books", href: "/dashboard/books" },
-	{ icon: FiUsers, label: "Following", href: "/dashboard/following" },
-	{
-		icon: FiStar,
-		label: "Recommendations",
-		href: "/dashboard/recommendations",
-	},
-];
+export default function DashboardPage() {
 
-// Sample data (you'll replace this with real data)
-const samplePosts = [
-	{
-		id: "1",
-		author: {
-			id: "1",
-			name: "Jane Smith",
-			image: "/avatars/jane.jpg",
-		},
-		content:
-			"Just finished reading 'The Midnight Library' - absolutely mind-blowing!",
-		timestamp: "2h ago",
-		likes: 24,
-		commentCount: 8,
-	},
-	// ... more posts
-];
+	const emptyStateBg = useColorModeValue("gray.50", "gray.700");
 
-const sampleBooks = [
-	{
-		id: "1",
-		title: "The Midnight Library",
-		author: "Matt Haig",
-		coverImage: "/books/midnight-library.jpg",
-		status: "read" as const,
-	},
-	{
-		id: "2",
-		title: "Project Hail Mary",
-		author: "Andy Weir",
-		coverImage: "/books/project-hail-mary.jpg",
-		status: "want-to-read" as const,
-	},
-	// ... more books
-];
-
-export default function Dashboard() {
-	const sidebarBg = useColorModeValue("white", "gray.800");
-	const borderColor = useColorModeValue("gray.100", "gray.700");
+	// Sample data - replace with real data
+	const currentlyReading: any[] = [];
+	const followingFeed: any[] = [];
+	const { session } = useAuth()
 
 	return (
-		<>
-			<Navbar />
-			<Container maxW="container.xl" py={8}>
-				<Grid
-					templateColumns={{ base: "1fr", md: "240px 1fr" }}
-					gap={8}
-					pt={{ base: "70px", md: "80px" }}
-				>
-					{/* Sidebar */}
-					<GridItem
-						as="aside"
-						position={{ base: "relative", md: "sticky" }}
-						top={{ base: 0, md: "100px" }}
-						height={{ base: "auto", md: "calc(100vh - 100px)" }}
-						overflowY="auto"
-						bg={sidebarBg}
-						p={4}
-						borderRadius="lg"
-						borderWidth="1px"
-						borderColor={borderColor}
-					>
-						<VStack spacing={4} align="stretch">
-							{sidebarItems.map((item) => (
-								<Link
-									key={item.label}
-									href={item.href}
-									display="flex"
-									alignItems="center"
-									p={2}
-									borderRadius="md"
-									_hover={{ bg: "warmWhite.50" }}
-								>
-									<Icon as={item.icon} mr={3} />
-									<Text>{item.label}</Text>
+		<DashboardLayout>
+			{!!session ?
+				<VStack spacing={8} align="stretch">
+					{/* Currently Reading */}
+					<Box>
+						<Heading size="lg" mb={6}>Currently Reading</Heading>
+						{currentlyReading.length > 0 ? (
+							<SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+								{currentlyReading.map((book) => (
+									<BookCard key={book.id} {...book} />
+								))}
+							</SimpleGrid>
+						) : (
+							<Center
+								p={8}
+								bg={emptyStateBg}
+								borderRadius="lg"
+								flexDirection="column"
+								gap={4}
+							>
+								<Icon as={FiBook} w={10} h={10} color="gray.400" />
+								<Text color="gray.500" textAlign="center">
+									You're not reading any books yet
+								</Text>
+								<Link href="/dashboard/discover">
+									<Button
+										leftIcon={<Icon as={FiCompass} />}
+										colorScheme="sepia"
+										variant="outline"
+									>
+										Discover Books
+									</Button>
 								</Link>
-							))}
-						</VStack>
-					</GridItem>
+							</Center>
+						)}
+					</Box>
 
-					{/* Main Content */}
-					<GridItem>
-						<VStack spacing={8} align="stretch">
-							<Box>
-								<Heading size="lg" mb={6}>
-									Your Feed
-								</Heading>
-								<VStack spacing={6} align="stretch">
-									{samplePosts.map((post, index) => (
-										<PostCard key={index} {...post} />
-									))}
+					{/* Following Feed */}
+					<Box>
+						<Heading size="lg" mb={6}>Following Feed</Heading>
+						{followingFeed.length > 0 ? (
+							<VStack spacing={6} align="stretch">
+								{followingFeed.map((post) => (
+									<PostCard key={post.id} {...post} />
+								))}
+							</VStack>
+						) : (
+							<Center
+								p={8}
+								bg={emptyStateBg}
+								borderRadius="lg"
+								flexDirection="column"
+								gap={4}
+							>
+								<Icon as={FiUsers} w={10} h={10} color="gray.400" />
+								<VStack spacing={2}>
+									<Text color="gray.500" textAlign="center">
+										Your feed is empty
+									</Text>
+									<Text color="gray.500" fontSize="sm" textAlign="center">
+										Follow other readers to see their updates here
+									</Text>
 								</VStack>
-							</Box>
-
-							<Box>
-								<Heading size="lg" mb={6}>
-									Your Reading List
-								</Heading>
-								<Grid
-									templateColumns={{
-										base: "1fr",
-										sm: "repeat(2, 1fr)",
-										lg: "repeat(3, 1fr)",
-									}}
-									gap={6}
-								>
-									{sampleBooks.map((book, index) => (
-										<BookCard key={index} {...book} />
-									))}
-								</Grid>
-							</Box>
-						</VStack>
-					</GridItem>
-				</Grid>
-			</Container>
-		</>
+								<Link href="/dashboard/discover">
+									<Button
+										leftIcon={<Icon as={FiUsers} />}
+										colorScheme="sepia"
+										variant="outline"
+									>
+										Find Readers
+									</Button>
+								</Link>
+							</Center>
+						)}
+					</Box>
+				</VStack> : <VStack flex={1} align="stretch" height="100%">
+					<Center>Login or sign up to view your personalised dashboard</Center>
+				</VStack>
+			}
+		</DashboardLayout>
 	);
 }
