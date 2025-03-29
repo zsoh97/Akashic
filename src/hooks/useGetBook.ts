@@ -14,6 +14,7 @@ const GET_BOOK = gql`
       coverImage
       isbn
       isbn13
+      isInReadingList
     }
   }
 `;

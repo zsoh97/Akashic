@@ -17,10 +17,16 @@ export type Genre = {
 export interface Book {
   id: string;
   title: string;
-  author: string;
-  coverImage: string;
+  authors: string[];
+  publisher: string;
+  publishedDate: Date;
   description: string;
-  publishYear: number | null;
+  pageCount: number;
+  categories: string[];
+  coverImage: string;
+  isbn: string;
+  isbn13: string;
+  rating?: number;
 }
 
 export type UserBook = {

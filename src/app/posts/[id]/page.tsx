@@ -10,7 +10,6 @@ import { CommentForm } from "@/components/dashboard/CommentForm";
 import { DiscussionEmptyState } from "@/components/dashboard/DiscussionEmptyState";
 import { Navbar } from "@/components/Navbar";
 import { PostCard } from "@/components/dashboard/PostCard";
-import { CommentCard } from "@/components/dashboard/CommentCard";
 import { useParams } from "next/navigation";
 import { useGetDiscussion } from "@/hooks/useGetDiscussion";
 import _ from "lodash";
@@ -34,7 +33,6 @@ export default function PostPage() {
 
 	
 	const { discussion, isGetDiscussionLoading } = useGetDiscussion(postId);
-	console.log(discussion)
 	const [targetParentId, setTargetParentId] = useState<string | null>(null);
 
 	return (
@@ -55,7 +53,8 @@ export default function PostPage() {
 							
 							{/* Comment Form */}
 							<CommentForm
-								postId={postId}
+								parentId={postId}
+								parentType="DISCUSSION"
 								onCommentSubmit={() => setTargetParentId(null)}
 							/>
 

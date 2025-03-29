@@ -33,7 +33,6 @@ export function PostCard({
 			variables: { id, vote }
 		});
 	};
-	console.log(post)
 
 	return (
 		<VStack p={6} align="stretch" spacing={4}>

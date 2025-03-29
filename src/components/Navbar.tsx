@@ -130,26 +130,23 @@ export function Navbar() {
 					})
 					: [];
 					
-				// In a real app, you would also search for users here
-				// For now, we'll just use some dummy user data
-				const userSuggestions: SearchSuggestion[] = debouncedQuery.length > 3 
-					? [
-						{
-							id: 'user-1',
-							type: 'user' as const,
-							name: 'Jane Reader',
-							image: '/avatars/jane.jpg',
-						},
-						{
-							id: 'user-2',
-							type: 'user' as const,
-							name: 'John Bookworm',
-							image: '/avatars/john.jpg',
-						}
-					].filter(user => 
-						user.name?.toLowerCase().includes(debouncedQuery.toLowerCase())
-					)
-					: [];
+				// Search for users via Supabase
+                const { data: profiles, error: profilesError } = await supabase
+                    .from('profiles')
+                    .select('id, username, full_name, avatar_url')
+                    .or(`username.ilike.%${debouncedQuery}%,full_name.ilike.%${debouncedQuery}%`)
+                    .limit(3);
+
+                if (profilesError) {
+                    console.error('Error fetching user suggestions:', profilesError);
+                }
+
+                const userSuggestions: SearchSuggestion[] = (profiles || []).map(profile => ({
+                    id: profile.id,
+                    type: 'user' as const,
+                    name: profile.full_name || profile.username,
+                    image: profile.avatar_url || '/empty-avatar.svg'
+                }));
 					
 				setSuggestions([...bookSuggestions, ...userSuggestions]);
 				setShowSuggestions(true);
@@ -168,7 +165,9 @@ export function Navbar() {
 		try {
 			await supabase.auth.signOut()
 			// Clear any local storage or cookies
-			localStorage.clear()
+			if (typeof window !== 'undefined') {
+				localStorage.clear()
+			}
 			// Force reload to clear any cached auth state
 			router.push('/')
 		} catch (error) {

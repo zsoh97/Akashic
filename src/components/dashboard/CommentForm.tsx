@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import {
 	VStack,
 	Textarea,
 	Button,
 	useToast,
-	Avatar,
-	HStack,
 	Flex,
 	FormControl,
-	FormErrorMessage
+	FormErrorMessage,
+	HStack
 } from "@chakra-ui/react";
 import { useCreateComment } from "@/hooks/useCreateComment";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,12 +16,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 interface CommentFormProps {
-	postId: string;
+	parentId: string;
+	parentType: 'DISCUSSION' | 'COMMENT';
 	onCommentSubmit: () => void;
 	userAvatar?: string;
 }
 
-export function CommentForm({ postId, onCommentSubmit, userAvatar }: CommentFormProps) {
+export function CommentForm({ parentId, onCommentSubmit, parentType }: CommentFormProps) {
 
 	const commentSchema = z.object({
 		content: z.string().min(1, "Content cannot be empty").max(1000, "Content is too long")
@@ -48,9 +47,9 @@ export function CommentForm({ postId, onCommentSubmit, userAvatar }: CommentForm
 		try {
 			createComment({
 				variables: {
-					parentId: postId,
+					parentId: parentId,
 					content: data.content,
-					parentType: 'DISCUSSION',
+					parentType,
 				}
 			});
 			toast({
@@ -59,6 +58,7 @@ export function CommentForm({ postId, onCommentSubmit, userAvatar }: CommentForm
 				duration: 2000,
 				colorScheme: "sepia"
 			});
+			onCommentSubmit();
 			reset();
 		} catch (e) {
 			toast({
@@ -81,7 +81,16 @@ export function CommentForm({ postId, onCommentSubmit, userAvatar }: CommentForm
 					/>
 					<FormErrorMessage>{errors.content?.message}</FormErrorMessage>
 				</FormControl>
-				<Flex justify="flex-end">
+				<HStack spacing="8px" justify="flex-end">
+					<Button
+						size="sm"
+						colorScheme="sepia"
+						isLoading={isCreateCommentLoading}
+						onClick={() =>onCommentSubmit()}
+					>
+						Cancel
+					</Button>
+
 					<Button
 						type="submit"
 						size="sm"
@@ -90,7 +99,7 @@ export function CommentForm({ postId, onCommentSubmit, userAvatar }: CommentForm
 					>
 						Post Comment
 					</Button>
-				</Flex>
+				</HStack>
 			</VStack>
 		</form>
 	);

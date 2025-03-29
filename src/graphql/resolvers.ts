@@ -138,6 +138,20 @@ export const resolvers = {
         where: { book_id: parent.id }
       });
     },
+    isInReadingList: async (parent: Book, _: any, { user }: Context) => {
+      if (!user) return false;
+      const userReadingList = await prisma.reading_lists.findFirst({
+        where: { user_id: user.id }
+      });
+      if (!userReadingList) return false;
+      const bookInList = await prisma.book_in_reading_list.findFirst({
+        where: {
+          book_id: parent.id,
+          reading_list_id: userReadingList.id
+        }
+      });
+      return !!bookInList;
+    },
     // readingLists: async (parent: Book) => {
     //   const bookInLists = await prisma.reading_lists.findMany({
     //     where: { book_id: parent.id },
@@ -270,6 +284,20 @@ export const resolvers = {
       });
     },
 
+    searchUsers: async (_: any, { query, limit, offset }: { query: string, limit?: number, offset?: number }) => {
+      return await prisma.authUser.findMany({
+        where: {
+          OR: [
+            { email: { contains: query, mode: 'insensitive' } },
+            { profiles: { full_name: { contains: query, mode: 'insensitive' } } }
+          ]
+        },
+        take: limit ?? 10,
+        skip: offset ?? 0,
+        orderBy: { created_at: 'desc' }
+      });
+    },
+
     // Public queries - no auth check
     books: async (_: any, { limit, offset }: { limit?: number, offset?: number }) => {
       return await prisma.books.findMany({
@@ -355,13 +383,32 @@ export const resolvers = {
       });
     },
 
-    myReadingLists: async (_: any, __: any, { user }: Context) => {
-      if (!user) return [];
+    myReadingList: async (_: any, __: any, { user }: Context) => {
+      if (!user) return null;
 
-      return await prisma.reading_lists.findMany({
+      const readingList = await prisma.reading_lists.findFirst({
         where: { user_id: user.id },
-        orderBy: { created_at: 'desc' }
+        include: { 
+          book_in_reading_list: {
+            include: {
+              books: true
+            }
+          }
+        }
       });
+
+      if (!readingList) {
+        throw new GraphQLError('No reading list found for this user');
+      }
+
+      return {
+        ...readingList,
+        isPublic: readingList.is_public,
+        books: readingList.book_in_reading_list.map(item => ({
+          ...item.books,
+          coverImage: item.books.cover_image
+        }))
+      };
     },
 
     myBookStatus: async (_: any, { bookId }: { bookId: string }, { user }: Context) => {
@@ -438,42 +485,31 @@ export const resolvers = {
         });
       }
 
-      const updatedList = await prisma.reading_lists.findUnique({
-        where: { id: readingList.id },
-        include: { 
-          book_in_reading_list: {
-            include: {
-              books: true
-            }
+      return await prisma.books.findUnique({ where: { id: bookId } });
+    },
+
+    removeBookFromReadingList: async (_: any, { bookId }: { bookId: string }, { user }: Context) => {
+      if (!user) {
+        throw new GraphQLError('You must be logged in to remove books from reading lists');
+      }
+
+      const readingList = await prisma.reading_lists.findFirst({
+        where: { user_id: user.id }
+      });
+      if (!readingList) {
+        throw new GraphQLError('User reading list not found');
+      }
+
+      await prisma.book_in_reading_list.delete({
+        where: {
+          book_id_reading_list_id: {
+            book_id: bookId,
+            reading_list_id: readingList.id
           }
         }
       });
-
-      if (!updatedList) {
-        throw new GraphQLError('Failed to retrieve updated reading list');
-      }
-
-      return {
-        ...updatedList,
-        isPublic: updatedList.is_public,
-        books: updatedList.book_in_reading_list.map(item => item.books)
-      };
+      return await prisma.books.findUnique({ where: { id: bookId } });
     },
-
-    // removeBookFromReadingList: async (_: any, { bookId, readingListId }: { book_id: string, readingListId: string }, { user }: Context) => {
-    //   if (!user) {
-    //     throw new GraphQLError('You must be logged in to remove books from reading lists');
-    //   }
-    //   await prisma.reading_lists.delete({
-    //     where: {
-    //       book_id_readingListId: {
-    //         bookId,
-    //         readingListId
-    //       }
-    //     }
-    //   });
-    //   return await prisma.reading_lists.findUnique({ where: { id: readingListId } });
-    // },
 
     // User mutations
     // updateUser: async (_: any, { name, avatar }: { name?: string, avatar?: string }, { user }: Context) => {
@@ -540,92 +576,6 @@ export const resolvers = {
     //   });
 
     //   return targetUser;
-    // },
-
-    // voteDiscussion: async (_: any, { id, vote }: { id: string, vote: VoteType }, { user }: Context) => {
-    //   if (!user) {
-    //     throw new GraphQLError('You must be logged in to vote');
-    //   }
-    //   const discussion = await prisma.discussions.findUnique({ where: { id } });
-    //   if (!discussion) {
-    //     throw new GraphQLError('Discussion not found');
-    //   }
-
-    //   const existingVote = await prisma.votes.findUnique({
-    //     where: {
-    //       user_id_discussion_id: {
-    //         user_id: user.id,
-    //         discussion_id: id
-    //       }
-    //     }
-    //   });
-
-    //   if (existingVote) {
-    //     if (vote === VoteType.NONE) {
-    //       // Delete the vote and update counts
-    //       await prisma.votes.delete({
-    //         where: {
-    //           user_id_discussion_id: {
-    //             user_id: user.id,
-    //             discussion_id: id
-    //           }
-    //         }
-    //       });
-    //       await prisma.discussions.update({
-    //         where: { id },
-    //         data: {
-    //           likes: discussion.likes! - (existingVote.type === VoteType.UP ? 1 : 0),
-    //           dislikes: discussion.dislikes! - (existingVote.type === VoteType.DOWN ? 1 : 0)
-    //         }
-    //       });
-    //     } else if (existingVote.type !== vote) {
-    //       // Update vote type and counts
-    //       await prisma.votes.update({
-    //         where: {
-    //           user_id_discussion_id: {
-    //             user_id: user.id,
-    //             discussion_id: id
-    //           }
-    //         },
-    //         data: { type: vote }
-    //       });
-    //       if (existingVote.type === VoteType.UP && vote === VoteType.DOWN) {
-    //         await prisma.discussions.update({
-    //           where: { id },
-    //           data: {
-    //             likes: discussion.likes! - 1,
-    //             dislikes: discussion.dislikes! + 1
-    //           }
-    //         });
-    //       } else if (existingVote.type === VoteType.DOWN && vote === VoteType.UP) {
-    //         await prisma.discussions.update({
-    //           where: { id },
-    //           data: {
-    //             likes: discussion.likes! + 1,
-    //             dislikes: discussion.dislikes! - 1
-    //           }
-    //         });
-    //       }
-    //     }
-    //   } else if (vote !== VoteType.NONE) {
-    //     // Create new vote
-    //     await prisma.votes.create({
-    //       data: {
-    //         type: vote,
-    //         user_id: user.id,
-    //         discussion_id: id
-    //       }
-    //     });
-    //     await prisma.discussions.update({
-    //       where: { id },
-    //       data: {
-    //         likes: discussion.likes! + (vote === VoteType.UP ? 1 : 0),
-    //         dislikes: discussion.dislikes! + (vote === VoteType.DOWN ? 1 : 0)
-    //       }
-    //     });
-    //   }
-
-    //   return await prisma.discussions.findUnique({ where: { id } });
     // },
 
     // Comment mutations

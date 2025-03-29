@@ -11,7 +11,6 @@ import { CacheProvider } from '@chakra-ui/next-js'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function RootLayout({
@@ -37,21 +36,21 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body>
-					<QueryClientProvider client={queryClient}>
-						<CacheProvider>
-							<ChakraProvider theme={theme}>
-								<AuthProvider>
+				<QueryClientProvider client={queryClient}>
+					<CacheProvider>
+						<ChakraProvider theme={theme}>
+							<AuthProvider>
+								<ApolloProvider client={client}>
 									<NavbarProvider>
 										<Navbar />
-										<ApolloProvider client={client}>
-											{children}
-										</ApolloProvider>
+										{children}
 									</NavbarProvider>
-								</AuthProvider>
-							</ChakraProvider>
-						</CacheProvider>
-						<ReactQueryDevtools />
-					</QueryClientProvider>
+								</ApolloProvider>
+							</AuthProvider>
+						</ChakraProvider>
+					</CacheProvider>
+					<ReactQueryDevtools />
+				</QueryClientProvider>
 			</body>
 		</html>
 	);

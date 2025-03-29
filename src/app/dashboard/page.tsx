@@ -11,32 +11,51 @@ import {
 	SimpleGrid,
 	Button,
 	Center,
+	Spinner,
 } from "@chakra-ui/react";
-import { FiBook, FiCompass, FiUsers } from "react-icons/fi";
+import { FiBook, FiCompass, FiUsers, FiBookmark } from "react-icons/fi";
 import { PostCard } from "@/components/dashboard/PostCard";
 import { BookCard } from "@/components/dashboard/BookCard";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useAuth } from '@/contexts/AuthContext';
+import { useGetReadingList } from '@/hooks/useGetReadingList';
 
 export default function DashboardPage() {
 
 	const emptyStateBg = useColorModeValue("gray.50", "gray.700");
 
-	// Sample data - replace with real data
-	const currentlyReading: any[] = [];
 	const followingFeed: any[] = [];
-	const { session } = useAuth()
-
+	const { session } = useAuth();
+	
+	// Get user's reading list books
+	const { readingList, loading: loadingReadingList, error: readingListError } = useGetReadingList();
+	
 	return (
 		<DashboardLayout>
 			{!!session ?
 				<VStack spacing={8} align="stretch">
-					{/* Currently Reading */}
+					{/* Reading List */}
 					<Box>
-						<Heading size="lg" mb={6}>Currently Reading</Heading>
-						{currentlyReading.length > 0 ? (
+						<Heading size="lg" mb={6}>Your Reading List</Heading>
+						{loadingReadingList ? (
+							<Center py={4}>
+								<Spinner size="lg" color="sepia.500" />
+							</Center>
+						) : readingListError ? (
+							<Center
+								p={8}
+								bg={emptyStateBg}
+								borderRadius="lg"
+								flexDirection="column"
+								gap={4}
+							>
+								<Text color="gray.500" textAlign="center">
+									Error loading your reading list
+								</Text>
+							</Center>
+						) : readingList.books.length > 0 ? (
 							<SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-								{currentlyReading.map((book) => (
+								{readingList.books.map((book) => (
 									<BookCard key={book.id} {...book} />
 								))}
 							</SimpleGrid>
@@ -48,9 +67,9 @@ export default function DashboardPage() {
 								flexDirection="column"
 								gap={4}
 							>
-								<Icon as={FiBook} w={10} h={10} color="gray.400" />
+								<Icon as={FiBookmark} w={10} h={10} color="gray.400" />
 								<Text color="gray.500" textAlign="center">
-									You're not reading any books yet
+									Your reading list is empty
 								</Text>
 								<Link href="/dashboard/discover">
 									<Button

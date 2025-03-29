@@ -6,7 +6,6 @@ export async function createContext({ req }: { req: NextApiRequest }) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
-    console.log('No token provided');
     return { user: null };
   }
   

@@ -1,4 +1,5 @@
 import { IsString, IsEmail, IsUrl, IsOptional } from 'class-validator'
+import { Book } from './Book'
 
 export type Profile = {
   id: string           // UUID from auth.users
@@ -19,19 +20,12 @@ export type User = {
   }
 }
 
-export class User {
-  @IsString()
-  id!: string
-
-  @IsString()
-  @IsOptional()
-  name?: string | null
-
-  @IsEmail()
-  @IsOptional()
-  email?: string | null
-
-  @IsUrl()
-  @IsOptional()
-  image?: string | null
-} 
+export type ReadingList = {
+  id: string
+  name: string
+  description?: string 
+  is_public: boolean
+  created_at: Date
+  updated_at: Date
+  books: Book[]
+}

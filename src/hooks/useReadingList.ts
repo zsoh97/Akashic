@@ -4,15 +4,6 @@ const ADD_TO_READING_LIST = gql`
   mutation AddBookToReadingList($bookId: ID!) {
     addBookToReadingList(bookId: $bookId) {
       id
-      name
-      description
-      isPublic
-      books {
-        id
-        title
-        authors
-        coverImage
-      }
     }
   }
 `;
@@ -22,27 +13,13 @@ export const useReadingList = () => {
     ADD_TO_READING_LIST,
     {
       update(cache, { data: { addBookToReadingList } }) {
+        // Update the book's isInReadingList field
+        const bookId = addBookToReadingList.id;
         cache.modify({
+          id: `Book:${bookId}`,
           fields: {
-            myReadingLists(existingLists = []) {
-              const newListRef = cache.writeFragment({
-                data: addBookToReadingList,
-                fragment: gql`
-                  fragment NewReadingList on ReadingList {
-                    id
-                    name
-                    description
-                    isPublic
-                    books {
-                      id
-                      title
-                      authors
-                      coverImage
-                    }
-                  }
-                `
-              });
-              return [...existingLists, newListRef];
+            isInReadingList() {
+              return true;
             }
           }
         });

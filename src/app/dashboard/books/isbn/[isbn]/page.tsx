@@ -27,22 +27,6 @@ import { useParams, useRouter } from 'next/navigation';
 import _ from 'lodash';
 import { useCreateBooks } from '@/hooks/useCreateBooks';
 import { useGetBook } from '@/hooks/useGetBook';
-import { useDiscussions } from '@/hooks/useDiscussions';
-
-// Update the DiscussionPost interface to match the one in BookDiscussions.tsx
-interface DiscussionPost {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  likes: number;
-  dislikes: number;
-  replies: number;
-  userVote?: 'up' | 'down' | null;
-}
 
 export default function BookDetailPage() {
   const router = useRouter()
@@ -193,6 +177,7 @@ export default function BookDetailPage() {
                     coverUrl={getBookCoverUrl()}
                     subjects={getBookSubjects()}
                     rating={bookData?.volumeInfo?.averageRating}
+                    isInReadingList={graphQLBook?.isInReadingList}
                   />
                   
                   <Divider my={6} />
