@@ -131,24 +131,24 @@ export function Navbar() {
 					: [];
 					
 				// Search for users via Supabase
-                const { data: profiles, error: profilesError } = await supabase
-                    .from('profiles')
-                    .select('id, username, full_name, avatar_url')
-                    .or(`username.ilike.%${debouncedQuery}%,full_name.ilike.%${debouncedQuery}%`)
-                    .limit(3);
+                // const { data: profiles, error: profilesError } = await supabase
+                //     .from('profiles')
+                //     .select('id, username, full_name, avatar_url')
+                //     .or(`username.ilike.%${debouncedQuery}%,full_name.ilike.%${debouncedQuery}%`)
+                //     .limit(3);
 
-                if (profilesError) {
-                    console.error('Error fetching user suggestions:', profilesError);
-                }
+                // if (profilesError) {
+                //     console.error('Error fetching user suggestions:', profilesError);
+                // }
 
-                const userSuggestions: SearchSuggestion[] = (profiles || []).map(profile => ({
-                    id: profile.id,
-                    type: 'user' as const,
-                    name: profile.full_name || profile.username,
-                    image: profile.avatar_url || '/empty-avatar.svg'
-                }));
+                // const userSuggestions: SearchSuggestion[] = (profiles || []).map(profile => ({
+                //     id: profile.id,
+                //     type: 'user' as const,
+                //     name: profile.full_name || profile.username,
+                //     image: profile.avatar_url || '/empty-avatar.svg'
+                // }));
 					
-				setSuggestions([...bookSuggestions, ...userSuggestions]);
+				setSuggestions(bookSuggestions);
 				setShowSuggestions(true);
 			} catch (error) {
 				console.error('Error fetching search suggestions:', error);

@@ -85,7 +85,7 @@ export default function DashboardPage() {
 					</Box>
 
 					{/* Following Feed */}
-					<Box>
+					{/* <Box>
 						<Heading size="lg" mb={6}>Following Feed</Heading>
 						{followingFeed.length > 0 ? (
 							<VStack spacing={6} align="stretch">
@@ -121,7 +121,7 @@ export default function DashboardPage() {
 								</Link>
 							</Center>
 						)}
-					</Box>
+					</Box> */}
 				</VStack> : <VStack flex={1} align="stretch" height="100%">
 					<Center>Login or sign up to view your personalised dashboard</Center>
 				</VStack>
