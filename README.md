@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Akashic - Your Digital Reading Companion
+
+Akashic is a modern web application designed for book enthusiasts to discover, track, and discuss their reading journey.
+
+## Tech Stack
+
+### Frontend
+- **Next.js 14** - React framework with App Router for server-side rendering and routing
+- **Chakra UI** - Component library for building accessible and responsive UI
+- **Apollo Client** - GraphQL client for state management and data fetching
+- **React Hook Form** - Form handling with validation
+- **Framer Motion** - Animation library for smooth transitions
+
+### Backend
+- **Supabase** - Backend-as-a-Service for authentication and database
+- **Prisma** - Type-safe ORM for database operations
+- **GraphQL Yoga** - GraphQL server implementation
+- **Apollo Server** - GraphQL server for API endpoints
+
+### APIs
+- **Google Books API** - Book search and metadata
+- **New York Times API** - Bestseller lists
+
+## Core Features
+
+### Book Discovery
+- Search books using Google Books API
+- Browse NYT bestseller lists
+- Genre-based book exploration
+- Real-time search suggestions
+
+### User Features
+- Email-based authentication via Supabase
+- Personal reading lists
+- User profiles
+- Follow other readers
+
+### Social Features
+- Book discussions and reviews
+- Nested comments on discussions
+- Voting system for discussions and comments
+
+### UI/UX
+- Responsive design for all devices
+- Dark/light mode support
+- Modern and clean interface
+- Real-time search suggestions
 
 ## Getting Started
 
-First, run the development server:
-
+1. Clone the repository
+2. Install dependencies:
+```bash
+npm install
+```
+3. Set up environment variables
+4. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
