@@ -26,7 +26,7 @@ const CREATE_COMMENT = gql`
 `;
 
 export const useCreateComment = () => {
-  const [createComment, { loading: isPosting, error: isErrorPosting }] = useMutation(
+  const [createComment, { loading: isCreateCommentLoading, error: isCreateCommentError }] = useMutation(
     CREATE_COMMENT,
     {
       update(cache, { data: { createComment: newComment } }) {
@@ -94,7 +94,7 @@ export const useCreateComment = () => {
 
   return {
     createComment,
-    isPosting,
-    isErrorPosting
+    isCreateCommentLoading,
+    isCreateCommentError,
   };
 };

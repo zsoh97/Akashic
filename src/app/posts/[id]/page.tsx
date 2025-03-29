@@ -1,143 +1,79 @@
 "use client";
 
 import {
-	Box,
 	Container,
 	VStack,
 	Divider,
 	Heading,
-	Input,
-	Button,
-	Icon,
-	useColorModeValue,
-	useToast,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { FiSend } from "react-icons/fi";
+import { CommentForm } from "@/components/dashboard/CommentForm";
+import { DiscussionEmptyState } from "@/components/dashboard/DiscussionEmptyState";
 import { Navbar } from "@/components/Navbar";
 import { PostCard } from "@/components/dashboard/PostCard";
 import { CommentCard } from "@/components/dashboard/CommentCard";
+import { useParams } from "next/navigation";
+import { useGetDiscussion } from "@/hooks/useGetDiscussion";
+import _ from "lodash";
+import { useState } from "react";
+import { CommentThread } from "@/components/dashboard/CommentThread";
 
-// Sample post data (replace with API call)
-const samplePost = {
-	id: "1",
+export type Comment = {
+	id: string;
+	content: string;
+	created_at: string;
 	author: {
-		id: "1",
-		name: "Jane Smith",
-		image: "/avatars/jane.jpg",
-	},
-	content:
-		"Just finished reading 'The Midnight Library' - absolutely mind-blowing!",
-	timestamp: "2h ago",
-	likes: 24,
-	commentCount: 8,
-};
-
-const sampleComments = [
-	{
-		id: "1",
-		author: {
-			id: "3",
-			name: "Alice Johnson",
-			image: "/avatars/alice.jpg",
-		},
-		content: "Couldn't agree more! The character development was incredible.",
-		timestamp: "1h ago",
-	},
-	// ... more comments
-];
+		id: string;
+		username: string;
+		avatar_url: string;
+	};
+}
 
 export default function PostPage() {
-	const [comments, setComments] = useState(sampleComments);
-	const [newComment, setNewComment] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
-	const toast = useToast();
-	const borderColor = useColorModeValue("gray.100", "gray.700");
+	const params = useParams();
+	const postId = _.get(params, "id") as string;
 
-	const handleAddComment = async () => {
-		if (!newComment.trim()) return;
-
-		setIsLoading(true);
-		try {
-			// Simulate API call
-			await new Promise((resolve) => setTimeout(resolve, 500));
-
-			const newCommentObj = {
-				id: Date.now().toString(),
-				author: {
-					id: "current-user-id",
-					name: "Current User",
-					image: "/avatars/current-user.jpg",
-				},
-				content: newComment,
-				timestamp: "Just now",
-			};
-
-			setComments((prev) => [newCommentObj, ...prev]);
-			setNewComment("");
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		} catch (e) {
-			toast({
-				title: "Error adding comment",
-				status: "error",
-				duration: 3000,
-			});
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	
+	const { discussion, isGetDiscussionLoading } = useGetDiscussion(postId);
+	console.log(discussion)
+	const [targetParentId, setTargetParentId] = useState<string | null>(null);
 
 	return (
 		<>
 			<Navbar />
-			<Container maxW="container.md" py={8} pt={{ base: "70px", md: "80px" }}>
-				<VStack spacing={8} align="stretch">
-					{/* Original Post */}
-					<PostCard {...samplePost} />
+			{isGetDiscussionLoading ? <></> :
 
-					<Divider />
+				<Container maxW="container.md" py={8} pt={{ base: "70px", md: "80px" }}>
+					<VStack spacing={8} align="stretch">
+						{/* Original Post */}
+						<PostCard post={discussion} />
 
-					{/* Comments Section */}
-					<VStack spacing={6} align="stretch">
-						<Heading size="md">Comments ({comments.length})</Heading>
+						<Divider />
 
-						{/* Add Comment */}
-						<Box
-							p={4}
-							bg="white"
-							borderRadius="lg"
-							borderWidth="1px"
-							borderColor={borderColor}
-						>
-							<VStack spacing={4}>
-								<Input
-									placeholder="Add a comment..."
-									value={newComment}
-									onChange={(e) => setNewComment(e.target.value)}
-									onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
-								/>
-								<Button
-									alignSelf="flex-end"
-									leftIcon={<Icon as={FiSend} />}
-									colorScheme="sepia"
-									isLoading={isLoading}
-									onClick={handleAddComment}
-									isDisabled={!newComment.trim()}
-								>
-									Comment
-								</Button>
+						{/* Comments Section */}
+						<VStack spacing={6} align="stretch">
+							<Heading size="md">Comments ({!!discussion?.replies ? discussion?.replies.length : 0})</Heading>
+							
+							{/* Comment Form */}
+							<CommentForm
+								postId={postId}
+								onCommentSubmit={() => setTargetParentId(null)}
+							/>
+
+							{/* Comments List */}
+							<VStack spacing={4} align="stretch">
+								{!!discussion?.replies && discussion?.replies?.length > 0 ? (
+									discussion.replies.map((comment) => (
+										<CommentThread key={comment.id} comment={comment} depth={0} maxDepth={2}/>
+										// <CommentCard key={comment.id} {...comment} />
+									))
+								) : (
+									<DiscussionEmptyState />
+								)}
 							</VStack>
-						</Box>
-
-						{/* Comments List */}
-						<VStack spacing={4} align="stretch">
-							{comments.map((comment) => (
-								<CommentCard key={comment.id} {...comment} />
-							))}
 						</VStack>
 					</VStack>
-				</VStack>
-			</Container>
+				</Container>
+			}
 		</>
 	);
 }

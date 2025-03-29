@@ -20,6 +20,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
 import { useRouter } from 'next/navigation'
+import { getOrigin } from '@/utils/client'
 
 export function SignInForm() {
   const [email, setEmail] = useState('')
@@ -58,7 +59,7 @@ export function SignInForm() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${getOrigin()}/auth/callback`
         }
       })
 

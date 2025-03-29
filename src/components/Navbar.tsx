@@ -170,7 +170,7 @@ export function Navbar() {
 			// Clear any local storage or cookies
 			localStorage.clear()
 			// Force reload to clear any cached auth state
-			window.location.href = '/'
+			router.push('/')
 		} catch (error) {
 			console.error('Error signing out:', error)
 		}

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	Box,
 	VStack,
 	HStack,
 	Text,
@@ -10,237 +9,94 @@ import {
 	Icon,
 	IconButton,
 	Button,
-	Menu,
-	MenuButton,
-	MenuList,
-	MenuItem,
-	useColorModeValue,
 	useToast,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { FiHeart, FiMessageSquare, FiShare2, FiLink } from "react-icons/fi";
-import {
-	RiTelegramLine,
-	RiWhatsappLine,
-	RiFacebookCircleLine,
-	RiTwitterXLine,
-} from "react-icons/ri";
+import { FiArrowUp, FiArrowDown, FiMessageSquare } from "react-icons/fi";
+import { DiscussionPost } from "@/types/discussion";
+import { formatDate } from "@/utils/date";
+import { useVoteDiscussion } from "@/hooks/useVoteDiscussion";
+import { SocialMediaShare } from "./SocialMediaShare";
 
 interface PostCardProps {
-	id: string;
-	author: {
-		id: string;
-		name: string;
-		image: string;
-	};
-	content: string;
-	timestamp: string;
-	likes: number;
-	commentCount: number;
+	post: DiscussionPost
 }
 
 export function PostCard({
-	id,
-	author,
-	content,
-	timestamp,
-	likes,
-	commentCount,
+	post
 }: PostCardProps) {
-	const router = useRouter();
 	const toast = useToast();
-	const [isLiked, setIsLiked] = useState(false);
-	const [likeCount, setLikeCount] = useState(likes);
-	const borderColor = useColorModeValue("gray.100", "gray.700");
 
-	const handleLike = () => {
-		setIsLiked(!isLiked);
-		setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
-		// Here you would typically make an API call to update the like status
+	const { voteDiscussion } = useVoteDiscussion();
+	// Handle voting on a discussion
+	const handleVote = async (id: string, vote: 'UP' | 'DOWN' | 'NONE') => {
+		await voteDiscussion({
+			variables: { id, vote }
+		});
 	};
-
-	const handleShare = (method: string) => {
-		const shareText = `${content} - shared via Akashic`;
-		const shareUrl = window.location.href;
-
-		switch (method) {
-			case "copy":
-				navigator.clipboard.writeText(shareUrl);
-				toast({
-					title: "Link Copied",
-					status: "success",
-					duration: 2000,
-				});
-				break;
-			case "x":
-				window.open(
-					`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-						shareText
-					)}&url=${encodeURIComponent(shareUrl)}`
-				);
-				break;
-			case "telegram":
-				window.open(
-					`https://t.me/share/url?url=${encodeURIComponent(
-						shareUrl
-					)}&text=${encodeURIComponent(shareText)}`
-				);
-				break;
-			case "whatsapp":
-				window.open(
-					`https://api.whatsapp.com/send?text=${encodeURIComponent(
-						shareText + "\n" + shareUrl
-					)}`
-				);
-				break;
-			case "facebook":
-				window.open(
-					`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-						shareUrl
-					)}`
-				);
-				break;
-		}
-	};
-
-	const handlePostClick = (e: React.MouseEvent) => {
-		// Prevent navigation if clicking on interactive elements
-		if (
-			(e.target as HTMLElement).closest("button") ||
-			(e.target as HTMLElement).closest("a")
-		) {
-			return;
-		}
-		router.push(`/posts/${id}`);
-	};
+	console.log(post)
 
 	return (
-		<VStack align="stretch" spacing={4}>
-			<Box
-				p={6}
-				bg="white"
-				borderRadius="lg"
-				borderWidth="1px"
-				borderColor={borderColor}
-				onClick={handlePostClick}
-				cursor="pointer"
-				_hover={{ borderColor: "sepia.500" }}
-				transition="all 0.2s"
-			>
-				<VStack align="stretch" spacing={4}>
-					<HStack spacing={3}>
-						<Avatar size="sm" name={author.name} src={author.image} />
-						<VStack align="start" spacing={0}>
-							<Link
-								fontWeight="medium"
-								_hover={{ color: "sepia.500" }}
-								onClick={(e) => e.stopPropagation()}
-								cursor="pointer"
-							>
-								{author.name}
-							</Link>
-							<Text fontSize="sm" color="warmGray.500">
-								{timestamp}
-							</Text>
-						</VStack>
-					</HStack>
-
-					<Text>{content}</Text>
-
-					<HStack spacing={6}>
-						<Button
-							variant="ghost"
-							size="sm"
-							leftIcon={
-								<Icon
-									as={FiHeart}
-									color={isLiked ? "red.500" : "warmGray.500"}
-								/>
-							}
-							color="warmGray.500"
-							onClick={(e) => {
-								e.stopPropagation();
-								handleLike();
-							}}
-							_hover={{ color: "sepia.500" }}
-						>
-							{likeCount}
-						</Button>
-						<Button
-							variant="ghost"
-							size="sm"
-							leftIcon={<Icon as={FiMessageSquare} />}
-							color="warmGray.500"
-							onClick={(e) => {
-								e.stopPropagation();
-								handlePostClick(e);
-							}}
-							_hover={{ color: "sepia.500" }}
-						>
-							{commentCount}
-						</Button>
-						<Menu>
-							<MenuButton
-								as={IconButton}
-								aria-label="Share options"
-								icon={<Icon as={FiShare2} />}
-								variant="ghost"
-								size="sm"
-								color="warmGray.500"
-								_hover={{ color: "sepia.500" }}
-							/>
-							<MenuList>
-								<MenuItem
-									icon={<Icon as={FiLink} />}
-									onClick={(e) => {
-										e.stopPropagation();
-										handleShare("copy");
-									}}
-								>
-									Copy Link
-								</MenuItem>
-								<MenuItem
-									icon={<Icon as={RiTelegramLine} />}
-									onClick={(e) => {
-										e.stopPropagation();
-										handleShare("telegram");
-									}}
-								>
-									Share on Telegram
-								</MenuItem>
-								<MenuItem
-									icon={<Icon as={RiWhatsappLine} />}
-									onClick={(e) => {
-										e.stopPropagation();
-										handleShare("whatsapp");
-									}}
-								>
-									Share on WhatsApp
-								</MenuItem>
-								<MenuItem
-									icon={<Icon as={RiTwitterXLine} />}
-									onClick={(e) => {
-										e.stopPropagation();
-										handleShare("x");
-									}}
-								>
-									Share on X
-								</MenuItem>
-								<MenuItem
-									icon={<Icon as={RiFacebookCircleLine} />}
-									onClick={(e) => {
-										e.stopPropagation();
-										handleShare("facebook");
-									}}
-								>
-									Share on Facebook
-								</MenuItem>
-							</MenuList>
-						</Menu>
-					</HStack>
+		<VStack p={6} align="stretch" spacing={4}>
+			<HStack spacing={3}>
+				<Avatar size="sm" name={post.userName} src={post.userAvatar} />
+				<VStack align="start" spacing={0}>
+					<Link
+						fontWeight="medium"
+						_hover={{ color: "sepia.500" }}
+						onClick={(e) => e.stopPropagation()}
+						cursor="pointer"
+					>
+						{post.userName}
+					</Link>
+					<Text fontSize="sm" color="warmGray.500">
+						{formatDate(post.createdAt)}
+					</Text>
 				</VStack>
-			</Box>
+			</HStack>
+
+			<Text>{post.content}</Text>
+
+			<HStack spacing={6}>
+				<HStack spacing={2} borderRadius="24px" border="1px" borderColor="sepia.500">
+					<IconButton
+						borderRadius="100%"
+						aria-label="Upvote"
+						icon={<Icon as={FiArrowUp} />}
+						variant="ghost"
+						size="sm"
+						color={post.userVote === 'UP' ? "sepia.500" : "warmGray.500"}
+						_hover={{ color: "sepia.500" }}
+						onClick={() => handleVote(post.id, post.userVote === 'UP' ? 'NONE' : 'UP')}
+					/>
+					<Text color="warmGray.500" fontWeight="medium">
+						{post.likes - post.dislikes}
+					</Text>
+					<IconButton
+						borderRadius="100%"
+						aria-label="Downvote"
+						icon={<Icon as={FiArrowDown} />}
+						variant="ghost"
+						size="sm"
+						color={post.userVote === 'DOWN' ? "sepia.500" : "warmGray.500"}
+						_hover={{ color: "sepia.500" }}
+						onClick={() => handleVote(post.id, post.userVote === 'DOWN' ? 'NONE' : 'DOWN')}
+					/>
+				</HStack>
+
+				<Button
+					borderRadius="24px" border="1px" borderColor="sepia.500"
+					variant="ghost"
+					size="sm"
+					leftIcon={<Icon as={FiMessageSquare} />}
+					color="warmGray.500"
+					_hover={{ color: "sepia.500" }}
+					onClick={(e) => e.stopPropagation()}
+				>
+					{post.replies.length || 0} {post.replies.length || 0 > 1 ? 'Comments' : 'Comment'}
+				</Button>
+
+				<SocialMediaShare content={post.content}/>
+			</HStack>
 		</VStack>
 	);
 }

@@ -1,3 +1,4 @@
+import { DiscussionPost } from "@/types/discussion";
 import { gql, useQuery } from "@apollo/client";
 
 const GET_DISCUSSIONS = gql`
@@ -28,7 +29,7 @@ export function useDiscussions(bookId?: string) {
 		pollInterval: 600000, // 10 minutes
 	});
 
-	const discussions = data?.discussions || [];
+	const discussions = data?.discussions as DiscussionPost[] || [];
 
 	return { discussions, isGetDiscussionsError, isGetDiscussionsLoading, refetch };
 }

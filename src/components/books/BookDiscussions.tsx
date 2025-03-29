@@ -11,12 +11,10 @@ import {
   Button,
   useColorModeValue,
   Icon,
-  Avatar,
   Textarea,
   Input,
   FormControl,
   FormLabel,
-  IconButton,
   Card,
   CardBody,
   useDisclosure,
@@ -31,10 +29,6 @@ import {
 import {
   FiMessageSquare,
   FiSend,
-  FiChevronUp,
-  FiChevronDown,
-  FiShare2,
-  FiClock,
   FiUser,
   FiLock
 } from "react-icons/fi";
@@ -45,41 +39,11 @@ import { useDiscussions } from "@/hooks/useDiscussions";
 import { BookDiscussionSkeleton } from "./BookDiscussionSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import _ from "lodash";
-import { useVoteDiscussion } from "@/hooks/useVoteDiscussion";
-import { formatDate } from "@/utils/date";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
-import { useCreateComment } from "@/hooks/useCreateComment";
-import { CommentThread } from "@/components/dashboard/CommentThread";
 import { PostComponent } from "./PostComponent";
-
-interface Comment {
-  id: string;
-  author: {
-    id: string;
-    name: string;
-    image: string;
-  };
-  content: string;
-  timestamp: string;
-  replies?: Comment[];
-}
-
-export type DiscussionPost = {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  likes: number;
-  dislikes: number;
-  replies: Comment[];
-  userVote?: 'UP' | 'DOWN' | null;
-}
 
 interface BookDiscussionsProps {
   bookId: string;
@@ -242,7 +206,7 @@ export function BookDiscussions({ bookId }: BookDiscussionsProps) {
           <BookDiscussionSkeleton />
         ) : bookDiscussions.length > 0 ? (
           <Stack spacing={4}>
-            {discussions.map((post: DiscussionPost) => (
+            {discussions.map((post) => (
               <PostComponent key={post.id} post={post} setActiveCommentId={setActiveCommentId} activeCommentId={activeCommentId} />
             ))}
           </Stack>

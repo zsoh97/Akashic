@@ -47,6 +47,7 @@ export const typeDefs = gql`
     likes: Int!
     dislikes: Int!
     comments: [Comment!]
+    replies: [Comment!]
     userVote: VoteType
   }
 
@@ -57,12 +58,13 @@ export const typeDefs = gql`
     discussion: Discussion!
     parent: Comment
     parentId: ID
-    replies: [Comment!]!
+    replies: [Comment!]
     createdAt: String!
     updatedAt: String!
-    likes: Int!
-    dislikes: Int!
+    likes: Int
+    dislikes: Int
     userVote: VoteType
+    user: User!
   }
 
   type ReadingList {
@@ -149,7 +151,6 @@ export const typeDefs = gql`
       language: String
     ): Book!
     
-    addBookToReadingList(bookId: ID!, readingListId: ID!): ReadingList!
     removeBookFromReadingList(bookId: ID!, readingListId: ID!): ReadingList!
     updateBookStatus(bookId: ID!, status: ReadingStatus!, rating: Int, review: String): BookUserStatus!
     
@@ -167,6 +168,7 @@ export const typeDefs = gql`
     
     # Reading list mutations
     createReadingList(name: String!, description: String, isPublic: Boolean!): ReadingList!
+    addBookToReadingList(bookId: ID!): ReadingList!
     updateReadingList(id: ID!, name: String, description: String, isPublic: Boolean): ReadingList!
     deleteReadingList(id: ID!): Boolean!
   }

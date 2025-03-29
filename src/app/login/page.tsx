@@ -18,6 +18,7 @@ import {
   AlertIcon,
   Divider,
 } from '@chakra-ui/react';
+import { getOrigin } from '@/utils/client';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -53,7 +54,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${getOrigin()}/auth/callback`,
         },
       });
       
@@ -186,4 +187,4 @@ export default function Login() {
       </VStack>
     </Box>
   );
-} 
+}

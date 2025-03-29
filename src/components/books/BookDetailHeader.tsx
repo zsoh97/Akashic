@@ -11,12 +11,14 @@ import {
   Icon,
   Tag,
   useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
 import { FiBookmark, FiHeart, FiStar } from "react-icons/fi";
 import { BookCover } from './BookCover';
 import { semanticColors } from '@/theme/colors';
 
 interface BookDetailHeaderProps {
+  id: string;
   title: string;
   authors: string[];
   coverUrl: string;
@@ -24,14 +26,18 @@ interface BookDetailHeaderProps {
   rating?: number;
 }
 
+import { useReadingList } from '@/hooks/useReadingList';
+
 export function BookDetailHeader({ 
+  id,
   title, 
   authors, 
   coverUrl, 
   subjects = [], 
   rating 
 }: BookDetailHeaderProps) {
-  const borderColor = useColorModeValue(semanticColors.border.light, 'gray.700');
+  const { addToReadingList, isAddingToList } = useReadingList();
+  const toast = useToast();
   
   return (
     <Flex 
@@ -89,14 +95,39 @@ export function BookDetailHeader({
         )}
         
         <HStack spacing={4} pt={2}>
-          <Button leftIcon={<FiBookmark />} colorScheme="sepia" size="md">
-            Add to Shelf
+          <Button 
+            leftIcon={<FiBookmark />} 
+            colorScheme="sepia" 
+            size="md"
+            onClick={() => {
+              addToReadingList({ variables: { bookId: id } })
+                .then(() => {
+                  toast({
+                    title: "Book added to reading list",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                })
+                .catch((error) => {
+                  toast({
+                    title: "Error adding book to reading list",
+                    description: error.message,
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                  });
+                });
+            }}
+            isLoading={isAddingToList}
+          >
+            Add to Reading List
           </Button>
-          <Button leftIcon={<FiHeart />} variant="outline" colorScheme="sepia" size="md">
+          {/* <Button leftIcon={<FiHeart />} variant="outline" colorScheme="sepia" size="md">
             Favorite
-          </Button>
+          </Button> */}
         </HStack>
       </Stack>
     </Flex>
   );
-} 
+}

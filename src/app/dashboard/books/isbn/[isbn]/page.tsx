@@ -52,7 +52,7 @@ export default function BookDetailPage() {
   const { data, isGetBookError, refetch } = useGetBook(isbn as string);
   
   // GraphQL book data
-  const graphQLBook = data?.book;
+  let graphQLBook = data?.book;
   
   const sectionBg = useColorModeValue('gray.50', 'gray.700');
 
@@ -90,7 +90,7 @@ export default function BookDetailPage() {
           setBookData(book);
           
           const volumeInfo = book.volumeInfo;
-          createBook({
+          graphQLBook = await createBook({
             variables: {
               isbn: isbn,
               title: volumeInfo.title || 'Unknown Title',
@@ -186,7 +186,8 @@ export default function BookDetailPage() {
             <>
               {bookToDisplay ? (
                 <>
-                  <BookDetailHeader 
+                  <BookDetailHeader
+                    id={graphQLBook.id}
                     title={bookToDisplay.title}
                     authors={getAuthorNames()}
                     coverUrl={getBookCoverUrl()}

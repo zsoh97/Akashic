@@ -1,12 +1,14 @@
 import { formatDate } from "@/utils/date";
-import { Box, Flex, Text, useColorModeValue, IconButton, Avatar, Icon, Heading, Button, FormControl, Textarea, HStack } from "@chakra-ui/react";
+import { Box, Flex, Text, useColorModeValue, IconButton, Avatar, Icon, Heading, Button, FormControl, Textarea, HStack, useToast } from "@chakra-ui/react";
 import { FiChevronUp, FiChevronDown, FiClock, FiMessageSquare, FiShare2 } from "react-icons/fi";
 import { CommentThread } from "../dashboard/CommentThread";
-import { DiscussionPost } from "./BookDiscussions";
 import { semanticColors } from "@/theme/colors";
 import { z } from "zod";
 import { useVoteDiscussion } from "@/hooks/useVoteDiscussion";
 import { useCreateComment } from "@/hooks/useCreateComment";
+import { useRouter } from "next/navigation";
+import { getOrigin } from "@/utils/client";
+import { DiscussionPost } from "@/types/discussion";
 
 export type PostComponentProps = {
 	post: DiscussionPost;
@@ -15,7 +17,8 @@ export type PostComponentProps = {
 };
 
 export const PostComponent = ({ post, setActiveCommentId, activeCommentId }: PostComponentProps) => {
-
+	const router = useRouter();
+	const toast = useToast();
 	const borderColor = useColorModeValue(semanticColors.border.light, 'gray.700');
 	const tabBg = useColorModeValue('white', 'gray.800');
 	const voteBgActive = useColorModeValue('gray.100', 'gray.700');
@@ -25,7 +28,7 @@ export const PostComponent = ({ post, setActiveCommentId, activeCommentId }: Pos
 		content: z.string().min(1, "Comment cannot be empty").max(1000, "Comment is too long")
 	  });
 	type CommentFormData = z.infer<typeof commentSchema>;
-	const { createComment, isPosting: isPostingComment } = useCreateComment();
+	const { createComment, isCreateCommentLoading } = useCreateComment();
 
 	// Get content preview (first 150 characters)
 	const getContentPreview = (content: string): string => {
@@ -133,14 +136,16 @@ export const PostComponent = ({ post, setActiveCommentId, activeCommentId }: Pos
 					</Flex>
 
 					{/* Post Title */}
-					<Heading size="md" mb={2} lineHeight="1.2">
-						{post.title}
-					</Heading>
+					<Box onClick={() => router.push(`/posts/${post.id}`)} cursor="pointer" _hover={{ opacity: 0.8 }}>
+						<Heading size="md" mb={2} lineHeight="1.2">
+							{post.title}
+						</Heading>
 
-					{/* Post Content Preview */}
-					<Text mb={3} color={textColor}>
-						{getContentPreview(post.content)}
-					</Text>
+						{/* Post Content Preview */}
+						<Text mb={3} color={textColor}>
+							{getContentPreview(post.content)}
+						</Text>
+					</Box>
 
 					{/* Post Actions */}
 					<Flex align="center">
@@ -157,6 +162,25 @@ export const PostComponent = ({ post, setActiveCommentId, activeCommentId }: Pos
 							size="sm"
 							leftIcon={<Icon as={FiShare2} />}
 							variant="ghost"
+							onClick={async () => {
+								const url = `${getOrigin()}/posts/${post.id}`;
+								try {
+									await navigator.clipboard.writeText(url);
+									toast({
+										title: "Link copied to clipboard",
+										status: "success",
+										duration: 2000,
+                                        colorScheme: "sepia"
+									});
+								} catch (error) {
+									toast({
+										title: "Failed to copy link",
+										status: "error",
+										duration: 2000,
+                                        colorScheme: "sepia"
+									});
+								}
+							}}
 						>
 							Share
 						</Button>
@@ -200,7 +224,6 @@ export const PostComponent = ({ post, setActiveCommentId, activeCommentId }: Pos
 										<Button
 											size="sm"
 											colorScheme="sepia"
-											isLoading={isPostingComment}
 											onClick={() => setActiveCommentId(null)}
 										>
 											Cancel
@@ -209,7 +232,7 @@ export const PostComponent = ({ post, setActiveCommentId, activeCommentId }: Pos
 											type="submit"
 											size="sm"
 											colorScheme="sepia"
-											isLoading={isPostingComment}
+											isLoading={isCreateCommentLoading}
 										>
 											Post Comment
 										</Button>
